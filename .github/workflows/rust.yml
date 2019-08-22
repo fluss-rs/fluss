@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   build:
+    container: rustlang/rust:nightly-slim
 
     runs-on: ${{ matrix.os }}
 
