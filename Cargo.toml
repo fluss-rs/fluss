@@ -7,7 +7,7 @@ license = "MIT"
 repository = "https://github.com/vertexclique/fluss"
 homepage = "https://github.com/vertexclique/fluss"
 documentation = "https://docs.rs/fluss"
-description = "spf"
+description = "Stream processing framework"
 keywords = ["async", "stream", "data-processing", "stream-processing", "stream-dsl"]
 categories = ["asynchronous", "concurrency", "network-programming"]
 
