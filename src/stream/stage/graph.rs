@@ -17,6 +17,9 @@ impl<'a, I, O> GraphStage<'a, I, O> {
     }
 }
 
+///////////////
+// Graph Stage Logic
+///////////////
 pub struct GraphStageLogic {
     pub in_count: usize,
     pub out_count: usize,
@@ -28,7 +31,7 @@ impl GraphStageLogic {
         GraphStageLogic {
             in_count,
             out_count,
-            handlers: Vec::new(),
+            handlers: Vec::with_capacity(in_count + out_count),
         }
     }
 
@@ -36,15 +39,19 @@ impl GraphStageLogic {
         GraphStageLogic {
             in_count: shape.inlets().len(),
             out_count: shape.outlets().len(),
-            handlers: Vec::new(),
+            handlers: Vec::with_capacity(shape.inlets().len() + shape.outlets().len()),
         }
     }
 
-    pub fn set_inlet_handler<I>(inlet: Inlet<I>, handler: Box<dyn Handler>) {
-        unimplemented!()
+    pub fn set_inlet_handler<I: Clone>(&mut self, inlet: Inlet<I>, handler: Box<dyn Handler>) {
+        let inlet_handler = &[handler];
+        self.handlers
+            .splice(inlet.id..inlet.id, inlet_handler.iter().cloned());
     }
 
-    pub fn set_outlet_handler<O>(outlet: Outlet<O>, handler: Box<dyn Handler>) {
-        unimplemented!()
+    pub fn set_outlet_handler<O: Clone>(&mut self, outlet: Outlet<O>, handler: Box<dyn Handler>) {
+        let outlet_handler = &[handler];
+        self.handlers
+            .splice(outlet.id..outlet.id, outlet_handler.iter().cloned());
     }
 }

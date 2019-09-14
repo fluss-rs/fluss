@@ -1,4 +1,4 @@
-mod stage;
+pub mod stage;
 
 pub mod flow;
 pub mod sink;

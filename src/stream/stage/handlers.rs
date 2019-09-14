@@ -1,6 +1,18 @@
 use futures::io;
+use objekt_clonable::*;
+use std::any::Any;
+use std::convert::TryInto;
+use std::fmt::{Debug, Error, Formatter};
+use std::ops::Deref;
 
-pub trait Handler {}
+#[clonable]
+pub trait Handler: Clone {}
+impl<T> Handler for T where T: Clone {}
+impl Debug for dyn Handler {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        write!(f, "{:?}", self.type_id())
+    }
+}
 
 pub trait InHandler: Handler {
     /**

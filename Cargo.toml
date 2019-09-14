@@ -16,6 +16,7 @@ futures-preview = "0.3.0-alpha.17"
 pin-utils = "0.1.0-alpha.4"
 slab = "0.4.2"
 streaming-iterator = "0.1.4"
+objekt-clonable = "0.2.2"
 
 [dev-dependencies]
 async-std = "0.99"

@@ -12,6 +12,12 @@ pub struct SourceShape<'a, O> {
     pub out: Outlet<'a, O>,
 }
 
+impl<'a, O> SourceShape<'a, O> {
+    pub fn new_from(out: Outlet<'a, O>) -> Box<Self> {
+        Box::new(SourceShape { out })
+    }
+}
+
 impl<'a, I, O> Shape<'a, I, O> for SourceShape<'a, O>
 where
     O: Clone,
