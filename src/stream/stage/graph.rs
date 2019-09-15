@@ -37,7 +37,7 @@ impl GraphStageLogic {
         }
     }
 
-    pub fn new_with_shape<I, O>(shape: Box<dyn Shape<I, O>>) -> Self {
+    pub fn from_shape<I, O>(shape: Box<dyn Shape<I, O>>) -> Self {
         GraphStageLogic {
             in_count: shape.inlets().len(),
             out_count: shape.outlets().len(),

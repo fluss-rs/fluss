@@ -19,7 +19,7 @@ mod tests {
     fn graph_stage_logic_io_ordering() {
         let outlet0 = Outlet::<u64>::new(0, "RepeaterLogic.out");
         let mut shape = SourceShape::new_from(outlet0);
-        let mut gsl = GraphStageLogic::new_with_shape::<NotUsed, u64>(shape);
+        let mut gsl = GraphStageLogic::from_shape::<NotUsed, u64>(shape);
         gsl.set_outlet_handler(outlet0, Box::new(RepeaterOutHandler()));
 
         #[derive(Clone, Debug)]
