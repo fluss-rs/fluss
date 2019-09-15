@@ -5,16 +5,11 @@ use crate::stream::stage::handlers::*;
 use crate::stream::stage::lets::{Inlet, Outlet};
 use crate::stream::stage::shape::Shape;
 
-pub struct GraphStage<'a, I, O> {
-    pub shape: Box<dyn Shape<'a, I, O>>,
-    pub in_handler: Box<dyn InHandler>,
-    pub out_handler: Box<dyn OutHandler>,
-}
-
-impl<'a, I, O> GraphStage<'a, I, O> {
-    fn create_logic(&self, attributes: Attributes) -> GraphStageLogic {
-        unimplemented!()
-    }
+pub trait GraphStage<'a, I, O> {
+    fn shape(&mut self) -> Box<dyn Shape<'a, I, O>>;
+    fn in_handler(&mut self) -> Box<dyn InHandler>;
+    fn out_handler(&mut self) -> Box<dyn OutHandler>;
+    fn create_logic(&mut self, attributes: Attributes) -> GraphStageLogic;
 }
 
 ///////////////
