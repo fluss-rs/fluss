@@ -12,7 +12,7 @@ pub struct GraphStage<'a, I, O> {
 }
 
 impl<'a, I, O> GraphStage<'a, I, O> {
-    fn create_logic(&self, attributes: Attributes) {
+    fn create_logic(&self, attributes: Attributes) -> GraphStageLogic {
         unimplemented!()
     }
 }
