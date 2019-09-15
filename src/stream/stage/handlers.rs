@@ -5,16 +5,22 @@ use std::convert::TryInto;
 use std::fmt::{Debug, Error, Formatter};
 use std::ops::Deref;
 
-#[clonable]
-pub trait Handler: Clone {}
-impl<T> Handler for T where T: Clone {}
-impl Debug for dyn Handler {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        write!(f, "{:?}", self.type_id())
-    }
-}
+//#[clonable]
+//pub trait Handler: Clone {}
+////impl<T> Handler for T where T: Clone {}
+//impl Debug for dyn Handler {
+//    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+//        write!(f, "{:?}", self.type_id())
+//    }
+//}
 
-pub trait InHandler: Handler {
+#[clonable]
+pub trait InHandler: Clone {
+    /**
+     * Name of the outlet handler
+     */
+    fn name(&self) -> String;
+
     /**
      * Called when the input port has a new element available.
      */
@@ -31,7 +37,13 @@ pub trait InHandler: Handler {
     fn on_upstream_failure(&self, err: io::Error);
 }
 
-pub trait OutHandler: Handler {
+#[clonable]
+pub trait OutHandler: Clone {
+    /**
+     * Name of the outlet handler
+     */
+    fn name(&self) -> String;
+
     /**
      * Called when the output port has received a pull, and therefore ready to emit an element, i.e. [[GraphStageLogic.push()]]
      * is now allowed to be called on this port.

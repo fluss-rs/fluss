@@ -17,14 +17,18 @@ mod tests {
 
     #[test]
     fn graph_stage_logic_io_ordering() {
-        let outlet0 = Outlet::<u64>::new(0, "out0");
+        let outlet0 = Outlet::<u64>::new(0, "RepeaterLogic.out");
         let mut shape = SourceShape::new_from(outlet0);
         let mut gsl = GraphStageLogic::new_with_shape::<NotUsed, u64>(shape);
-        gsl.set_outlet_handler(outlet0, Box::new(RepeaterLogic()));
+        gsl.set_outlet_handler(outlet0, Box::new(RepeaterOutHandler()));
 
         #[derive(Clone, Debug)]
-        pub struct RepeaterLogic();
-        impl OutHandler for RepeaterLogic {
+        struct RepeaterOutHandler();
+        impl OutHandler for RepeaterOutHandler {
+            fn name(&self) -> String {
+                String::from("repeater-out-handler")
+            }
+
             fn on_pull(&self) {
                 unimplemented!()
             }
@@ -38,8 +42,11 @@ mod tests {
             }
         }
 
-        for i in gsl.handlers {
-            println!("Taken Handler :: {:?}", i);
+        assert_eq!(gsl.in_handlers.len(), 0);
+        assert_eq!(gsl.out_handlers.len(), 1);
+
+        for i in gsl.out_handlers {
+            println!("Taken Handler :: {}", i.name());
         }
     }
 }
