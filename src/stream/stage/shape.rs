@@ -1,4 +1,5 @@
 use crate::stream::stage::lets::{Inlet, Outlet};
+use crate::stream::stage::types::NotUsed;
 
 pub trait Shape<'a, I, O> {
     fn inlets(&self) -> Vec<Inlet<'a, I>>;
@@ -15,7 +16,7 @@ pub struct SourceShape<'a, O> {
 
 impl<'a, O> SourceShape<'a, O>
 where
-    O:Clone,
+    O: Clone,
 {
     pub fn new_from(outlet: Outlet<'a, O>) -> Box<Self> {
         Box::new(SourceShape { outlet })
@@ -55,9 +56,9 @@ where
 }
 
 impl<'a, I, O> Shape<'a, I, O> for FlowShape<'a, I, O>
-    where
-        I: Clone,
-        O: Clone,
+where
+    I: Clone,
+    O: Clone,
 {
     fn inlets(&self) -> Vec<Inlet<'a, I>> {
         vec![self.inlet.clone()]
@@ -86,8 +87,8 @@ where
 }
 
 impl<'a, I, O> Shape<'a, I, O> for SinkShape<'a, I>
-    where
-        I: Clone,
+where
+    I: Clone,
 {
     fn inlets(&self) -> Vec<Inlet<'a, I>> {
         vec![self.inlet.clone()]

@@ -6,15 +6,16 @@ use crate::stream::stage::lets::{Inlet, Outlet};
 use crate::stream::stage::shape::Shape;
 
 pub trait GraphStage<'a, I, O> {
-    fn shape(&mut self) -> Box<dyn Shape<'a, I, O>>;
-    fn in_handler(&mut self) -> Box<dyn InHandler>;
-    fn out_handler(&mut self) -> Box<dyn OutHandler>;
-    fn create_logic(&mut self, attributes: Attributes) -> GraphStageLogic;
+    fn build_shape(&'a mut self);
+    fn in_handler(&'a mut self) -> Box<dyn InHandler>;
+    fn out_handler(&'a mut self) -> Box<dyn OutHandler>;
+    fn create_logic(&'a mut self, attributes: Attributes) -> GraphStageLogic;
 }
 
 ///////////////
 // Graph Stage Logic
 ///////////////
+#[derive(Clone)]
 pub struct GraphStageLogic {
     pub in_count: usize,
     pub out_count: usize,
