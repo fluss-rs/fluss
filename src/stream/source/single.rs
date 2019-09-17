@@ -1,5 +1,6 @@
 use crate::stream::source::macros::*;
 use crate::stream::stage::prelude::*;
+use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::io::Error;
 
 pub struct Single<O> {
@@ -13,7 +14,9 @@ pub struct Single<O> {
 
 #[derive(Clone, Debug)]
 struct SingleOutHandler<O> {
-    elem: O
+    elem: O,
+    pub rx: Receiver<O>,
+    pub tx: Sender<O>,
 }
 
 impl<'a, O> GraphStage<'a, NotUsed, O> for Single<O>
@@ -22,7 +25,9 @@ where
 {
     fn build_shape(&mut self) {
         let single_source_outlet = Outlet::<O>::new(0, "Single.out");
-        self.shape = SourceShape { outlet: single_source_outlet };
+        self.shape = SourceShape {
+            outlet: single_source_outlet,
+        };
     }
 
     fn in_handler(&mut self) -> Box<dyn InHandler> {
@@ -39,11 +44,12 @@ where
             }
 
             fn on_pull(&self) {
-                self.elem.clone();
+                self.tx.send(self.elem.clone());
+                self.on_downstream_finish();
             }
 
             fn on_downstream_finish(&self) {
-                unimplemented!()
+                // TODO: Signal stop to the runtime (architect)
             }
 
             fn on_downstream_finish_explicit(&self, err: Error) {
@@ -51,7 +57,13 @@ where
             }
         }
 
-        self.out_handler = Box::new(SingleOutHandler {elem: self.elem.clone()});
+        let (tx, rx) = unbounded();
+
+        self.out_handler = Box::new(SingleOutHandler {
+            elem: self.elem.clone(),
+            tx,
+            rx,
+        });
 
         self.out_handler.clone()
     }
