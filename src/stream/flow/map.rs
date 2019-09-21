@@ -1,32 +1,53 @@
 use crate::stream::stage::prelude::*;
+use async_std::task;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::io::Error;
+use objekt_clonable::clonable;
+use std::marker::PhantomData;
+
+#[clonable]
+pub trait MapClosure<I, O>: Fn(I) -> O + Clone + Send + Sync + 'static {}
+type MapFn<I, O> = Box<dyn MapClosure<I, O>>;
 
 pub struct Map<I, O> {
     pub shape: FlowShape<'static, I, O>,
+
+    pub map_fn: MapFn<I, O>,
+
     pub in_handler: Box<dyn InHandler>,
     pub out_handler: Box<dyn OutHandler>,
     pub logic: GraphStageLogic,
 }
 
-#[derive(Clone, Debug)]
-struct MapInHandler<I> {
-    //    elem: I,
-    pub rx: Receiver<I>,
-    pub tx: Sender<I>,
+#[derive(Clone)]
+struct MapHandler<I, O> {
+    map_fn: Option<MapFn<I, O>>,
+
+    pub in_rx: Option<Receiver<I>>,
+    pub in_tx: Option<Sender<I>>,
+
+    pub out_rx: Option<Receiver<O>>,
+    pub out_tx: Option<Sender<O>>,
 }
 
-#[derive(Clone, Debug)]
-struct MapOutHandler<O> {
-    //    elem: O,
-    pub rx: Receiver<O>,
-    pub tx: Sender<O>,
+impl<I, O> Default for MapHandler<I, O> {
+    fn default() -> Self {
+        MapHandler {
+            map_fn: None,
+
+            in_rx: None,
+            in_tx: None,
+
+            out_tx: None,
+            out_rx: None,
+        }
+    }
 }
 
 impl<'a, I, O> GraphStage<'a, I, O> for Map<I, O>
 where
-    I: Clone + 'static,
-    O: Clone + 'static,
+    I: Clone + Send + Sync + 'static,
+    O: Clone + Send + Sync + 'static,
 {
     fn build_shape(&mut self) {
         let map_flow_inlet = Inlet::<I>::new(0, "Map.in");
@@ -39,16 +60,23 @@ where
     }
 
     fn in_handler(&mut self) -> Box<dyn InHandler> {
-        impl<I> InHandler for MapInHandler<I>
+        impl<I, O> InHandler for MapHandler<I, O>
         where
-            I: Clone + 'static,
+            I: Clone + Send + Sync + 'static,
+            O: Clone + Send + Sync + 'static,
         {
             fn name(&self) -> String {
-                unimplemented!()
+                String::from("map-flow-in")
             }
 
             fn on_push(&self) {
-                unimplemented!()
+                unimplemented!();
+                if let Ok(elem) = self.in_rx.unwrap().try_recv() {
+                    let resp: O = task::block_on(async { self.map_fn.as_ref().unwrap()(elem) });
+                } else {
+                    // todo: handle error case of try_recv
+                    // todo: on_pull make demand from the upper
+                }
             }
 
             fn on_upstream_finish(&self) {
@@ -60,19 +88,17 @@ where
             }
         }
 
-        let (tx, rx) = unbounded::<I>();
-        self.in_handler = Box::new(MapInHandler { tx, rx });
-
-        self.in_handler.clone()
+        Box::new(MapHandler::<I, O>::default())
     }
 
     fn out_handler(&mut self) -> Box<dyn OutHandler> {
-        impl<O> OutHandler for MapOutHandler<O>
+        impl<I, O> OutHandler for MapHandler<I, O>
         where
-            O: Clone + 'static,
+            I: Clone + Send + Sync + 'static,
+            O: Clone + Send + Sync + 'static,
         {
             fn name(&self) -> String {
-                String::from("single-source")
+                String::from("map-flow-out")
             }
 
             fn on_pull(&self) {
@@ -88,16 +114,27 @@ where
             }
         }
 
-        let (tx, rx) = unbounded::<O>();
-        self.out_handler = Box::new(MapOutHandler { tx, rx });
-
-        self.out_handler.clone()
+        Box::new(MapHandler::<I, O>::default())
     }
 
     fn create_logic(&mut self, attributes: Attributes) -> GraphStageLogic {
         self.build_shape();
         self.in_handler();
         self.out_handler();
+
+        let (in_tx, in_rx) = unbounded::<I>();
+        let (out_tx, out_rx) = unbounded::<O>();
+
+        let handler = Box::new(MapHandler {
+            map_fn: Some(self.map_fn.clone()),
+            in_tx: Some(in_tx),
+            in_rx: Some(in_rx),
+            out_rx: Some(out_rx),
+            out_tx: Some(out_tx),
+        });
+
+        self.in_handler = handler.clone();
+        self.out_handler = handler.clone();
 
         let shape = Box::new(self.shape.clone());
 

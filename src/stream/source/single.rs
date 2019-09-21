@@ -40,7 +40,7 @@ where
             O: Clone + 'static,
         {
             fn name(&self) -> String {
-                String::from("single-source")
+                String::from("single-source-out")
             }
 
             fn on_pull(&self) {
