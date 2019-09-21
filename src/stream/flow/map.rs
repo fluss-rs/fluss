@@ -1,5 +1,4 @@
 use crate::stream::stage::prelude::*;
-use async_std::task;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::io::Error;
 use objekt_clonable::clonable;
@@ -72,7 +71,8 @@ where
             fn on_push(&self) {
                 unimplemented!();
                 if let Ok(elem) = self.in_rx.unwrap().try_recv() {
-                    let resp: O = task::block_on(async { self.map_fn.as_ref().unwrap()(elem) });
+                    let resp: O = self.map_fn.as_ref().unwrap()(elem);
+                    self.out_tx.unwrap().send(resp);
                 } else {
                     // todo: handle error case of try_recv
                     // todo: on_pull make demand from the upper
