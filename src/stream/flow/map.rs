@@ -13,6 +13,9 @@ pub struct Map<I, O> {
 
     pub map_fn: MapFn<I, O>,
 
+    pub demand_rx: Receiver<Demander>,
+    pub demand_tx: Sender<Demander>,
+
     pub in_handler: Box<dyn InHandler>,
     pub out_handler: Box<dyn OutHandler>,
     pub logic: GraphStageLogic,
@@ -24,6 +27,9 @@ struct MapHandler<I, O> {
 
     pub in_rx: Option<Receiver<I>>,
     pub in_tx: Option<Sender<I>>,
+
+    pub demand_rx: Option<Receiver<Demander>>,
+    pub demand_tx: Option<Sender<Demander>>,
 
     pub out_rx: Option<Receiver<O>>,
     pub out_tx: Option<Sender<O>>,
@@ -37,13 +43,16 @@ impl<I, O> Default for MapHandler<I, O> {
             in_rx: None,
             in_tx: None,
 
+            demand_rx: None,
+            demand_tx: None,
+
             out_tx: None,
             out_rx: None,
         }
     }
 }
 
-impl<'a, I, O> GraphStage<'a, I, O> for Map<I, O>
+impl<'a, I, O> GraphStage<'a> for Map<I, O>
 where
     I: Clone + Send + Sync + 'static,
     O: Clone + Send + Sync + 'static,
@@ -58,11 +67,11 @@ where
         };
     }
 
-    fn in_handler(&mut self) -> Box<dyn InHandler> {
+    fn build_in_handler(&mut self) -> Box<dyn InHandler> {
         impl<I, O> InHandler for MapHandler<I, O>
         where
-            I: Clone + Send + Sync + 'static,
-            O: Clone + Send + Sync + 'static,
+            I: Clone + Send + Sync,
+            O: Clone + Send + Sync,
         {
             fn name(&self) -> String {
                 String::from("map-flow-in")
@@ -76,6 +85,10 @@ where
                 } else {
                     // todo: handle error case of try_recv
                     // todo: on_pull make demand from the upper
+                    let demand = Demand {
+
+                    };
+                    self.demand_tx.send
                 }
             }
 
@@ -91,7 +104,7 @@ where
         Box::new(MapHandler::<I, O>::default())
     }
 
-    fn out_handler(&mut self) -> Box<dyn OutHandler> {
+    fn build_out_handler(&mut self) -> Box<dyn OutHandler> {
         impl<I, O> OutHandler for MapHandler<I, O>
         where
             I: Clone + Send + Sync + 'static,
@@ -117,10 +130,15 @@ where
         Box::new(MapHandler::<I, O>::default())
     }
 
+    fn build_demand(&'a mut self, tx: Sender<Demander>, rx: Receiver<Demander>) {
+        self.demand_tx = tx;
+        self.demand_rx = rx;
+    }
+
     fn create_logic(&mut self, attributes: Attributes) -> GraphStageLogic {
         self.build_shape();
-        self.in_handler();
-        self.out_handler();
+        self.build_in_handler();
+        self.build_out_handler();
 
         let (in_tx, in_rx) = unbounded::<I>();
         let (out_tx, out_rx) = unbounded::<O>();

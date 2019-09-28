@@ -9,6 +9,10 @@ pub struct Single<O> {
     pub shape: SourceShape<'static, O>,
     pub in_handler: Box<dyn InHandler>,
     pub out_handler: Box<dyn OutHandler>,
+
+    pub demand_rx: Receiver<Demander>,
+    pub demand_tx: Sender<Demander>,
+
     pub logic: GraphStageLogic,
 }
 
@@ -19,9 +23,9 @@ struct SingleOutHandler<O> {
     pub tx: Sender<O>,
 }
 
-impl<'a, O> GraphStage<'a, NotUsed, O> for Single<O>
+impl<'a, O> GraphStage<'a> for Single<O>
 where
-    O: Clone + 'static,
+    O: Clone +  'static,
 {
     fn build_shape(&mut self) {
         let single_source_outlet = Outlet::<O>::new(0, "Single.out");
@@ -30,11 +34,11 @@ where
         };
     }
 
-    fn in_handler(&mut self) -> Box<dyn InHandler> {
+    fn build_in_handler(&mut self) -> Box<dyn InHandler> {
         unimplemented!()
     }
 
-    fn out_handler(&mut self) -> Box<dyn OutHandler> {
+    fn build_out_handler(&mut self) -> Box<dyn OutHandler> {
         impl<O> OutHandler for SingleOutHandler<O>
         where
             O: Clone + 'static,
@@ -68,9 +72,14 @@ where
         self.out_handler.clone()
     }
 
+    fn build_demand(&'a mut self, tx: Sender<Demander>, rx: Receiver<Demander>) {
+        self.demand_tx = tx;
+        self.demand_rx = rx;
+    }
+
     fn create_logic(&mut self, attributes: Attributes) -> GraphStageLogic {
         self.build_shape();
-        self.out_handler();
+        self.build_out_handler();
 
         let shape = Box::new(self.shape.clone());
 
