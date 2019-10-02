@@ -4,15 +4,15 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::io::Error;
 
 pub struct Single<O> {
+    pub shape: SourceShape<'static, O>,
+
     pub elem: O,
 
-    pub shape: SourceShape<'static, O>,
+    pub demand_rx: Receiver<Demand>,
+    pub demand_tx: Sender<Demand>,
+
     pub in_handler: Box<dyn InHandler>,
     pub out_handler: Box<dyn OutHandler>,
-
-    pub demand_rx: Receiver<Demander>,
-    pub demand_tx: Sender<Demander>,
-
     pub logic: GraphStageLogic,
 }
 
@@ -72,7 +72,7 @@ where
         self.out_handler.clone()
     }
 
-    fn build_demand(&'a mut self, tx: Sender<Demander>, rx: Receiver<Demander>) {
+    fn build_demand(&'a mut self, tx: Sender<Demand>, rx: Receiver<Demand>) {
         self.demand_tx = tx;
         self.demand_rx = rx;
     }

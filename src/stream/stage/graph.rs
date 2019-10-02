@@ -5,13 +5,13 @@ use crate::stream::stage::handlers::*;
 use crate::stream::stage::lets::{Inlet, Outlet};
 use crate::stream::stage::shape::Shape;
 use crossbeam_channel::{Sender, Receiver};
-use crate::stream::stage::demand::Demander;
+use crate::stream::stage::demand::{Demander, Demand};
 
 pub trait GraphStage<'a> {
     fn build_shape(&'a mut self);
     fn build_in_handler(&'a mut self) -> Box<dyn InHandler>;
     fn build_out_handler(&'a mut self) -> Box<dyn OutHandler>;
-    fn build_demand(&'a mut self, tx: Sender<Demander>, rx: Receiver<Demander>);
+    fn build_demand(&'a mut self, tx: Sender<Demand>, rx: Receiver<Demand>);
     fn create_logic(&'a mut self, attributes: Attributes) -> GraphStageLogic;
 }
 

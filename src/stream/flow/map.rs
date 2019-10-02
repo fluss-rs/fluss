@@ -3,6 +3,7 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::io::Error;
 use objekt_clonable::clonable;
 use std::marker::PhantomData;
+use crate::stream::stage::demand::DemandStyle::DemandFull;
 
 #[clonable]
 pub trait MapClosure<I, O>: Fn(I) -> O + Clone + Send + Sync + 'static {}
@@ -10,11 +11,12 @@ type MapFn<I, O> = Box<dyn MapClosure<I, O>>;
 
 pub struct Map<I, O> {
     pub shape: FlowShape<'static, I, O>,
+    pub stage_id: usize,
 
     pub map_fn: MapFn<I, O>,
 
-    pub demand_rx: Receiver<Demander>,
-    pub demand_tx: Sender<Demander>,
+    pub demand_rx: Receiver<Demand>,
+    pub demand_tx: Sender<Demand>,
 
     pub in_handler: Box<dyn InHandler>,
     pub out_handler: Box<dyn OutHandler>,
@@ -24,12 +26,13 @@ pub struct Map<I, O> {
 #[derive(Clone)]
 struct MapHandler<I, O> {
     map_fn: Option<MapFn<I, O>>,
+    pub stage_id: usize,
 
     pub in_rx: Option<Receiver<I>>,
     pub in_tx: Option<Sender<I>>,
 
-    pub demand_rx: Option<Receiver<Demander>>,
-    pub demand_tx: Option<Sender<Demander>>,
+    pub demand_rx: Option<Receiver<Demand>>,
+    pub demand_tx: Option<Sender<Demand>>,
 
     pub out_rx: Option<Receiver<O>>,
     pub out_tx: Option<Sender<O>>,
@@ -39,6 +42,7 @@ impl<I, O> Default for MapHandler<I, O> {
     fn default() -> Self {
         MapHandler {
             map_fn: None,
+            stage_id: 0,
 
             in_rx: None,
             in_tx: None,
@@ -78,17 +82,17 @@ where
             }
 
             fn on_push(&self) {
-                unimplemented!();
-                if let Ok(elem) = self.in_rx.unwrap().try_recv() {
+                if let Ok(elem) = self.in_rx.as_ref().unwrap().try_recv() {
                     let resp: O = self.map_fn.as_ref().unwrap()(elem);
-                    self.out_tx.unwrap().send(resp);
+                    self.out_tx.as_ref().unwrap().send(resp);
                 } else {
                     // todo: handle error case of try_recv
                     // todo: on_pull make demand from the upper
                     let demand = Demand {
-
+                        stage_id: self.stage_id,
+                        style: DemandFull(100)
                     };
-                    self.demand_tx.send
+                    self.demand_tx.as_ref().unwrap().send(demand).unwrap();
                 }
             }
 
@@ -130,16 +134,12 @@ where
         Box::new(MapHandler::<I, O>::default())
     }
 
-    fn build_demand(&'a mut self, tx: Sender<Demander>, rx: Receiver<Demander>) {
+    fn build_demand(&'a mut self, tx: Sender<Demand>, rx: Receiver<Demand>) {
         self.demand_tx = tx;
         self.demand_rx = rx;
     }
 
     fn create_logic(&mut self, attributes: Attributes) -> GraphStageLogic {
-        self.build_shape();
-        self.build_in_handler();
-        self.build_out_handler();
-
         let (in_tx, in_rx) = unbounded::<I>();
         let (out_tx, out_rx) = unbounded::<O>();
 
@@ -149,7 +149,14 @@ where
             in_rx: Some(in_rx),
             out_rx: Some(out_rx),
             out_tx: Some(out_tx),
+            demand_rx: Some(self.demand_rx.clone()),
+            demand_tx: Some(self.demand_tx.clone()),
+            stage_id: self.stage_id
         });
+
+        self.build_shape();
+        self.build_in_handler();
+        self.build_out_handler();
 
         self.in_handler = handler.clone();
         self.out_handler = handler.clone();

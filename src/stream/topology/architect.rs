@@ -1,10 +1,10 @@
-use crate::stream::stage::demand::Demander;
+use crate::stream::stage::demand::{Demander, Demand};
 use crossbeam_channel::{Sender, Receiver, unbounded};
 use crate::stream::stage::graph::GraphStage;
 
 pub struct Architect {
-    demand_tx: Sender<Demander>,
-    demand_rx: Receiver<Demander>,
+    demand_tx: Sender<Demand>,
+    demand_rx: Receiver<Demand>,
 
     stages: Vec<Box<dyn GraphStage<'static>>>
 }
@@ -12,7 +12,7 @@ pub struct Architect {
 
 impl Architect {
     pub fn graph(stages: Vec<Box<dyn GraphStage<'static>>>) -> Architect {
-        let (demand_tx, demand_rx) = unbounded::<Demander>();
+        let (demand_tx, demand_rx) = unbounded::<Demand>();
         Architect {
             demand_rx,
             demand_tx,
@@ -25,8 +25,12 @@ impl Architect {
     }
 
     fn visit_stages(&mut self) {
-        for i in &self.stages {
-            unimplemented!()
-        }
+        unimplemented!();
+//        for &mut stage in *self.stages {
+//            stage.build_demand(
+//                self.demand_tx.clone(),
+//                self.demand_rx.clone()
+//            )
+//        }
     }
 }
