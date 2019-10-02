@@ -1,4 +1,4 @@
-use crate::stream::stage::demand::{Demander, Demand};
+use crate::stream::stage::demand::{Demand};
 use crossbeam_channel::{Sender, Receiver, unbounded};
 use crate::stream::stage::graph::GraphStage;
 

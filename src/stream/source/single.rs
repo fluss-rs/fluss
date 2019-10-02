@@ -1,4 +1,4 @@
-use crate::stream::source::macros::*;
+
 use crate::stream::stage::prelude::*;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::io::Error;
@@ -56,7 +56,7 @@ where
                 // TODO: Signal stop to the runtime (architect)
             }
 
-            fn on_downstream_finish_explicit(&self, err: Error) {
+            fn on_downstream_finish_explicit(&self, _err: Error) {
                 unimplemented!()
             }
         }
@@ -77,7 +77,7 @@ where
         self.demand_rx = rx;
     }
 
-    fn create_logic(&mut self, attributes: Attributes) -> GraphStageLogic {
+    fn create_logic(&mut self, _attributes: Attributes) -> GraphStageLogic {
         self.build_shape();
         self.build_out_handler();
 

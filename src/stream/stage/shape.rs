@@ -1,5 +1,5 @@
 use crate::stream::stage::lets::{Inlet, Outlet};
-use crate::stream::stage::types::NotUsed;
+
 
 pub trait Shape<'a, I, O> {
     fn inlets(&self) -> Vec<Inlet<'a, I>>;

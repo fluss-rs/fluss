@@ -2,7 +2,7 @@ use crate::stream::stage::prelude::*;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::io::Error;
 use objekt_clonable::clonable;
-use std::marker::PhantomData;
+
 use crate::stream::stage::demand::DemandStyle::DemandFull;
 
 #[clonable]
@@ -100,7 +100,7 @@ where
                 unimplemented!()
             }
 
-            fn on_upstream_failure(&self, err: Error) {
+            fn on_upstream_failure(&self, _err: Error) {
                 unimplemented!()
             }
         }
@@ -126,7 +126,7 @@ where
                 unimplemented!()
             }
 
-            fn on_downstream_finish_explicit(&self, err: Error) {
+            fn on_downstream_finish_explicit(&self, _err: Error) {
                 unimplemented!()
             }
         }
@@ -139,7 +139,7 @@ where
         self.demand_rx = rx;
     }
 
-    fn create_logic(&mut self, attributes: Attributes) -> GraphStageLogic {
+    fn create_logic(&mut self, _attributes: Attributes) -> GraphStageLogic {
         let (in_tx, in_rx) = unbounded::<I>();
         let (out_tx, out_rx) = unbounded::<O>();
 
