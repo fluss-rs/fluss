@@ -18,6 +18,10 @@ slab = "0.4.2"
 streaming-iterator = "0.1.4"
 objekt-clonable = "0.2.2"
 crossbeam-channel = "0.3.9"
+bus = "2.2.2"
+
+# Remove later when executor is in place
+async-std = "0.99"
 
 [dev-dependencies]
-async-std = "0.99"
+

@@ -1,15 +1,18 @@
-use std::marker::PhantomData as marker;
+
 
 use crate::stream::stage::attributes::Attributes;
 use crate::stream::stage::handlers::*;
 use crate::stream::stage::lets::{Inlet, Outlet};
-use crate::stream::stage::shape::Shape;
+use crate::stream::stage::shape::{Shape, ShapeType};
+use crossbeam_channel::{Sender, Receiver};
+use crate::stream::stage::demand::{Demand};
 
-pub trait GraphStage<'a, I, O> {
+pub trait GraphStage<'a> {
     fn build_shape(&'a mut self);
-    fn in_handler(&'a mut self) -> Box<dyn InHandler>;
-    fn out_handler(&'a mut self) -> Box<dyn OutHandler>;
+    fn build_demand(&'a mut self, tx: Sender<Demand>, rx: Receiver<Demand>);
     fn create_logic(&'a mut self, attributes: Attributes) -> GraphStageLogic;
+
+    fn get_shape(&'a self) -> ShapeType;
 }
 
 ///////////////

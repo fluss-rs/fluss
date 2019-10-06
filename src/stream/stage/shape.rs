@@ -1,7 +1,15 @@
 use crate::stream::stage::lets::{Inlet, Outlet};
-use crate::stream::stage::types::NotUsed;
+
+#[derive(PartialEq)]
+pub enum ShapeType {
+    Source,
+    Flow,
+    Sink
+}
+
 
 pub trait Shape<'a, I, O> {
+    fn shape_type(&self) -> ShapeType;
     fn inlets(&self) -> Vec<Inlet<'a, I>>;
     fn outlets(&self) -> Vec<Outlet<'a, O>>;
 }
@@ -27,6 +35,10 @@ impl<'a, I, O> Shape<'a, I, O> for SourceShape<'a, O>
 where
     O: Clone,
 {
+    fn shape_type(&self) -> ShapeType {
+        ShapeType::Source
+    }
+
     fn inlets(&self) -> Vec<Inlet<'a, I>> {
         Vec::new()
     }
@@ -60,6 +72,10 @@ where
     I: Clone,
     O: Clone,
 {
+    fn shape_type(&self) -> ShapeType {
+        ShapeType::Flow
+    }
+
     fn inlets(&self) -> Vec<Inlet<'a, I>> {
         vec![self.inlet.clone()]
     }
@@ -90,6 +106,10 @@ impl<'a, I, O> Shape<'a, I, O> for SinkShape<'a, I>
 where
     I: Clone,
 {
+    fn shape_type(&self) -> ShapeType {
+        ShapeType::Sink
+    }
+
     fn inlets(&self) -> Vec<Inlet<'a, I>> {
         vec![self.inlet.clone()]
     }
