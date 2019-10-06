@@ -3,8 +3,6 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::io::Error;
 use objekt_clonable::clonable;
 
-use crate::stream::stage::demand::DemandStyle::DemandFull;
-
 #[clonable]
 pub trait MapClosure<I, O>: Fn(I) -> O + Clone + Send + Sync + 'static {}
 type MapFn<I, O> = Box<dyn MapClosure<I, O>>;
@@ -80,7 +78,7 @@ impl<I, O> InHandler for MapHandler<I, O>
             // todo: on_pull make demand from the upper
             let demand = Demand {
                 stage_id: self.stage_id,
-                style: DemandFull(100)
+                style: DemandStyle::DemandFull(100)
             };
             self.demand_tx.as_ref().unwrap().send(demand).unwrap();
         }
