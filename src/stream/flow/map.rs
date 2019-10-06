@@ -13,8 +13,8 @@ pub struct Map<I, O> {
 
     pub map_fn: MapFn<I, O>,
 
-    pub demand_rx: Receiver<Demand>,
-    pub demand_tx: Sender<Demand>,
+    pub demand_rx: BroadcastReceiver<Demand>,
+    pub demand_tx: BroadcastSender<Demand>,
 
     pub in_handler: Box<dyn InHandler>,
     pub out_handler: Box<dyn OutHandler>,
@@ -31,8 +31,8 @@ struct MapHandler<I, O> {
     pub in_rx: Option<Receiver<I>>,
     pub in_tx: Option<Sender<I>>,
 
-    pub demand_rx: Option<Receiver<Demand>>,
-    pub demand_tx: Option<Sender<Demand>>,
+    pub demand_rx: Option<BroadcastReceiver<Demand>>,
+    pub demand_tx: Option<BroadcastSender<Demand>>,
 
     pub out_rx: Option<Receiver<O>>,
     pub out_tx: Option<Sender<O>>,
@@ -80,7 +80,7 @@ impl<I, O> InHandler for MapHandler<I, O>
                 stage_id: self.stage_id,
                 style: DemandStyle::DemandFull(100)
             };
-            self.demand_tx.as_ref().unwrap().send(demand).unwrap();
+            self.demand_tx.as_ref().unwrap().try_send(demand).unwrap();
         }
     }
 
@@ -126,7 +126,7 @@ where
         };
     }
 
-    fn build_demand(&'a mut self, tx: Sender<Demand>, rx: Receiver<Demand>) {
+    fn build_demand(&'a mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>) {
         self.demand_tx = tx;
         self.demand_rx = rx;
     }

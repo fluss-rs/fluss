@@ -6,10 +6,11 @@ use crate::stream::stage::lets::{Inlet, Outlet};
 use crate::stream::stage::shape::{Shape, ShapeType};
 use crossbeam_channel::{Sender, Receiver};
 use crate::stream::stage::demand::{Demand};
+use multiqueue::{BroadcastSender, BroadcastReceiver};
 
 pub trait GraphStage<'a> {
     fn build_shape(&'a mut self);
-    fn build_demand(&'a mut self, tx: Sender<Demand>, rx: Receiver<Demand>);
+    fn build_demand(&'a mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>);
     fn create_logic(&'a mut self, attributes: Attributes) -> GraphStageLogic;
 
     fn get_shape(&'a self) -> ShapeType;

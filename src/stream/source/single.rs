@@ -8,8 +8,8 @@ pub struct Single<O> {
 
     pub elem: O,
 
-    pub demand_rx: Receiver<Demand>,
-    pub demand_tx: Sender<Demand>,
+    pub demand_rx: BroadcastReceiver<Demand>,
+    pub demand_tx: BroadcastSender<Demand>,
 
     pub in_handler: Box<dyn InHandler>,
     pub out_handler: Box<dyn OutHandler>,
@@ -56,7 +56,7 @@ where
         };
     }
 
-    fn build_demand(&'a mut self, tx: Sender<Demand>, rx: Receiver<Demand>) {
+    fn build_demand(&'a mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>) {
         self.demand_tx = tx;
         self.demand_rx = rx;
     }

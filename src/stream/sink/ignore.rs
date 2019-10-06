@@ -6,23 +6,23 @@ pub struct Ignore<I> {
     pub shape: SinkShape<'static, I>,
     pub stage_id: usize,
 
-    pub demand_rx: Receiver<Demand>,
-    pub demand_tx: Sender<Demand>,
+    pub demand_rx: BroadcastReceiver<Demand>,
+    pub demand_tx: BroadcastSender<Demand>,
 
     pub in_handler: Box<dyn InHandler>,
     pub out_handler: Box<dyn OutHandler>,
     pub logic: GraphStageLogic,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 struct IgnoreHandler<I> {
     pub stage_id: usize,
 
     pub in_rx: Option<Receiver<I>>,
     pub in_tx: Option<Sender<I>>,
 
-    pub demand_rx: Option<Receiver<Demand>>,
-    pub demand_tx: Option<Sender<Demand>>,
+    pub demand_rx: Option<BroadcastReceiver<Demand>>,
+    pub demand_tx: Option<BroadcastSender<Demand>>,
 }
 
 impl<I> InHandler for IgnoreHandler<I>
@@ -43,7 +43,7 @@ impl<I> InHandler for IgnoreHandler<I>
                 stage_id: self.stage_id,
                 style: DemandStyle::DemandFull(100)
             };
-            self.demand_tx.as_ref().unwrap().send(demand).unwrap();
+            self.demand_tx.as_ref().unwrap().try_send(demand).unwrap();
         }
     }
 
@@ -67,7 +67,7 @@ impl<'a, I> GraphStage<'a> for Ignore<I>
         };
     }
 
-    fn build_demand(&'a mut self, tx: Sender<Demand>, rx: Receiver<Demand>) {
+    fn build_demand(&'a mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>) {
         self.demand_tx = tx;
         self.demand_rx = rx;
     }
