@@ -5,6 +5,7 @@ pub mod lets;
 pub mod shape;
 pub mod types;
 pub mod demand;
+pub mod error;
 
 pub mod prelude {
     pub use super::attributes::*;
@@ -14,4 +15,5 @@ pub mod prelude {
     pub use super::shape::*;
     pub use super::types::*;
     pub use super::demand::*;
+    pub use super::error::*;
 }

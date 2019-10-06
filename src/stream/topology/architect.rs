@@ -1,16 +1,17 @@
 use crate::stream::stage::demand::{Demand};
 use crossbeam_channel::{Sender, Receiver, unbounded};
 use crate::stream::stage::graph::GraphStage;
+use crate::stream::stage::shape::ShapeType;
 
-pub struct Architect {
+pub struct Architect<'a> {
     demand_tx: Sender<Demand>,
     demand_rx: Receiver<Demand>,
 
-    stages: Vec<Box<dyn GraphStage<'static>>>
+    stages: Vec<Box<dyn GraphStage<'a>>>
 }
 
 
-impl Architect {
+impl<'a> Architect<'a> {
     pub fn graph(stages: Vec<Box<dyn GraphStage<'static>>>) -> Architect {
         let (demand_tx, demand_rx) = unbounded::<Demand>();
         Architect {
@@ -24,13 +25,20 @@ impl Architect {
         unimplemented!()
     }
 
-    fn visit_stages(&mut self) {
-        unimplemented!();
-//        for &mut stage in *self.stages {
-//            stage.build_demand(
-//                self.demand_tx.clone(),
-//                self.demand_rx.clone()
-//            )
-//        }
+    fn check_bounds(&'a self) {
+        if let Some(root) = self.stages.first() {
+            if root.get_shape() != ShapeType::Source {
+                unimplemented!()
+            }
+        }
+    }
+
+    fn visit_stages(&'a mut self) {
+        let tx = self.demand_tx.clone();
+        let rx = self.demand_rx.clone();
+
+        self.stages.iter_mut().for_each(|stage| {
+            stage.build_demand(tx.clone(), rx.clone())
+        });
     }
 }
