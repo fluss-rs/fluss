@@ -1,3 +1,3 @@
 <div align="center">
-  <img src="https://github.com/bastion-rs/bastion/blob/master/img/bastion.png"><br>
+  <img src="https://github.com/fluss-rs/fluss/blob/master/img/fluss-banner.png"><br>
 </div>
