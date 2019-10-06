@@ -34,7 +34,7 @@ impl<I> InHandler for IgnoreHandler<I>
     }
 
     fn on_push(&self) {
-        if let Ok(elem) = self.in_rx.as_ref().unwrap().try_recv() {
+        if let Ok(_elem) = self.in_rx.as_ref().unwrap().try_recv() {
             println!("Ignored");
         } else {
             // todo: handle error case of try_recv
@@ -51,7 +51,7 @@ impl<I> InHandler for IgnoreHandler<I>
         unimplemented!()
     }
 
-    fn on_upstream_failure(&self, err: Error) {
+    fn on_upstream_failure(&self, _err: Error) {
         unimplemented!()
     }
 }

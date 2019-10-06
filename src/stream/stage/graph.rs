@@ -4,7 +4,7 @@ use crate::stream::stage::attributes::Attributes;
 use crate::stream::stage::handlers::*;
 use crate::stream::stage::lets::{Inlet, Outlet};
 use crate::stream::stage::shape::{Shape, ShapeType};
-use crossbeam_channel::{Sender, Receiver};
+
 use crate::stream::stage::demand::{Demand};
 use multiqueue::{BroadcastSender, BroadcastReceiver};
 
