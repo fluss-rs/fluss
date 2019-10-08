@@ -1,8 +1,8 @@
-
 use crate::stream::stage::prelude::*;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::io::Error;
 
+#[derive(Clone)]
 pub struct Single<O> {
     pub shape: SourceShape<'static, O>,
 
@@ -24,8 +24,8 @@ struct SingleHandler<O> {
 }
 
 impl<O> OutHandler for SingleHandler<O>
-    where
-        O: Clone + 'static,
+where
+    O: Clone + 'static,
 {
     fn name(&self) -> String {
         String::from("single-source-out")
@@ -45,9 +45,9 @@ impl<O> OutHandler for SingleHandler<O>
     }
 }
 
-impl<'a, O> GraphStage<'a> for Single<O>
+impl<O> GraphStage for Single<O>
 where
-    O: Clone +  'static,
+    O: Clone + 'static,
 {
     fn build_shape(&mut self) {
         let single_source_outlet = Outlet::<O>::new(0, "Single.out");
@@ -56,7 +56,7 @@ where
         };
     }
 
-    fn build_demand(&'a mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>) {
+    fn build_demand(&mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>) {
         self.demand_tx = tx;
         self.demand_rx = rx;
     }
@@ -80,7 +80,7 @@ where
         gsl
     }
 
-    fn get_shape(&'a self) -> ShapeType {
+    fn get_shape(&self) -> ShapeType {
         let shape: &dyn Shape<NotUsed, O> = &self.shape;
         shape.shape_type()
     }

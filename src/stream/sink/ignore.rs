@@ -2,6 +2,7 @@ use crate::stream::stage::prelude::*;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::io::Error;
 
+#[derive(Clone)]
 pub struct Ignore<I> {
     pub shape: SinkShape<'static, I>,
     pub stage_id: usize,
@@ -26,8 +27,8 @@ struct IgnoreHandler<I> {
 }
 
 impl<I> InHandler for IgnoreHandler<I>
-    where
-        I: Clone + 'static,
+where
+    I: Clone + 'static,
 {
     fn name(&self) -> String {
         String::from("ignore-sink-in")
@@ -41,7 +42,7 @@ impl<I> InHandler for IgnoreHandler<I>
             // todo: on_pull make demand from the upper
             let demand = Demand {
                 stage_id: self.stage_id,
-                style: DemandStyle::DemandFull(100)
+                style: DemandStyle::DemandFull(100),
             };
             self.demand_tx.as_ref().unwrap().try_send(demand).unwrap();
         }
@@ -56,9 +57,9 @@ impl<I> InHandler for IgnoreHandler<I>
     }
 }
 
-impl<'a, I> GraphStage<'a> for Ignore<I>
-    where
-        I: Clone +  'static,
+impl<I> GraphStage for Ignore<I>
+where
+    I: Clone + 'static,
 {
     fn build_shape(&mut self) {
         let ignore_sink_inlet = Inlet::<I>::new(0, "Sink.out");
@@ -67,7 +68,7 @@ impl<'a, I> GraphStage<'a> for Ignore<I>
         };
     }
 
-    fn build_demand(&'a mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>) {
+    fn build_demand(&mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>) {
         self.demand_tx = tx;
         self.demand_rx = rx;
     }
@@ -82,7 +83,7 @@ impl<'a, I> GraphStage<'a> for Ignore<I>
             in_rx: Some(rx),
             demand_rx: Some(self.demand_rx.clone()),
             demand_tx: Some(self.demand_tx.clone()),
-            stage_id: self.stage_id
+            stage_id: self.stage_id,
         });
 
         let shape = Box::new(self.shape.clone());
@@ -93,7 +94,7 @@ impl<'a, I> GraphStage<'a> for Ignore<I>
         gsl
     }
 
-    fn get_shape(&'a self) -> ShapeType {
+    fn get_shape(&self) -> ShapeType {
         let shape: &dyn Shape<I, NotUsed> = &self.shape;
         shape.shape_type()
     }

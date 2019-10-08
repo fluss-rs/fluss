@@ -7,6 +7,7 @@ use objekt_clonable::clonable;
 pub trait MapClosure<I, O>: Fn(I) -> O + Clone + Send + Sync + 'static {}
 type MapFn<I, O> = Box<dyn MapClosure<I, O>>;
 
+#[derive(Clone)]
 pub struct Map<I, O> {
     pub shape: FlowShape<'static, I, O>,
     pub stage_id: usize,
@@ -39,9 +40,9 @@ struct MapHandler<I, O> {
 }
 
 impl<I, O> OutHandler for MapHandler<I, O>
-    where
-        I: Clone + Send + Sync + 'static,
-        O: Clone + Send + Sync + 'static,
+where
+    I: Clone + Send + Sync + 'static,
+    O: Clone + Send + Sync + 'static,
 {
     fn name(&self) -> String {
         String::from("map-flow-out")
@@ -61,9 +62,9 @@ impl<I, O> OutHandler for MapHandler<I, O>
 }
 
 impl<I, O> InHandler for MapHandler<I, O>
-    where
-        I: Clone + Send + Sync,
-        O: Clone + Send + Sync,
+where
+    I: Clone + Send + Sync,
+    O: Clone + Send + Sync,
 {
     fn name(&self) -> String {
         String::from("map-flow-in")
@@ -78,7 +79,7 @@ impl<I, O> InHandler for MapHandler<I, O>
             // todo: on_pull make demand from the upper
             let demand = Demand {
                 stage_id: self.stage_id,
-                style: DemandStyle::DemandFull(100)
+                style: DemandStyle::DemandFull(100),
             };
             self.demand_tx.as_ref().unwrap().try_send(demand).unwrap();
         }
@@ -111,7 +112,7 @@ impl<I, O> Default for MapHandler<I, O> {
     }
 }
 
-impl<'a, I, O> GraphStage<'a> for Map<I, O>
+impl<I, O> GraphStage for Map<I, O>
 where
     I: Clone + Send + Sync + 'static,
     O: Clone + Send + Sync + 'static,
@@ -126,7 +127,7 @@ where
         };
     }
 
-    fn build_demand(&'a mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>) {
+    fn build_demand(&mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>) {
         self.demand_tx = tx;
         self.demand_rx = rx;
     }
@@ -145,7 +146,7 @@ where
             out_tx: Some(out_tx),
             demand_rx: Some(self.demand_rx.clone()),
             demand_tx: Some(self.demand_tx.clone()),
-            stage_id: self.stage_id
+            stage_id: self.stage_id,
         });
 
         self.in_handler = handler.clone();
@@ -160,7 +161,7 @@ where
         gsl
     }
 
-    fn get_shape(&'a self) -> ShapeType {
+    fn get_shape(&self) -> ShapeType {
         self.shape.shape_type()
     }
 }

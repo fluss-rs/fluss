@@ -2,12 +2,11 @@
 mod tests {
     use fluss::stream::stage::graph::GraphStageLogic;
     use fluss::stream::stage::handlers::{InHandler, OutHandler};
-    use fluss::stream::stage::lets::{Outlet};
+    use fluss::stream::stage::lets::Outlet;
     use fluss::stream::stage::shape::SourceShape;
-    
+
     use fluss::stream::stage::types::NotUsed;
     use futures::io::Error;
-    
 
     //        let inlet0 = Inlet::<u64>::new(0, "in0");
     //        let inlet1 = Inlet::<u64>::new(1, "in1");

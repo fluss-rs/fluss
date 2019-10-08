@@ -1,12 +1,11 @@
 use crate::stream::stage::lets::{Inlet, Outlet};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum ShapeType {
     Source,
     Flow,
-    Sink
+    Sink,
 }
-
 
 pub trait Shape<'a, I, O> {
     fn shape_type(&self) -> ShapeType;

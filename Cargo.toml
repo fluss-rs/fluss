@@ -12,6 +12,7 @@ keywords = ["async", "stream", "data-processing", "stream-processing", "stream-d
 categories = ["asynchronous", "concurrency", "network-programming"]
 
 [dependencies]
+static_assertions = "1.0.0"
 futures-preview = "0.3.0-alpha.17"
 pin-utils = "0.1.0-alpha.4"
 slab = "0.4.2"

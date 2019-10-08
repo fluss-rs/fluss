@@ -1,19 +1,19 @@
-
-
 use crate::stream::stage::attributes::Attributes;
 use crate::stream::stage::handlers::*;
 use crate::stream::stage::lets::{Inlet, Outlet};
 use crate::stream::stage::shape::{Shape, ShapeType};
 
-use crate::stream::stage::demand::{Demand};
-use multiqueue::{BroadcastSender, BroadcastReceiver};
+use crate::stream::stage::demand::Demand;
+use multiqueue::{BroadcastReceiver, BroadcastSender};
+use objekt_clonable::*;
 
-pub trait GraphStage<'a> {
-    fn build_shape(&'a mut self);
-    fn build_demand(&'a mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>);
-    fn create_logic(&'a mut self, attributes: Attributes) -> GraphStageLogic;
+#[clonable]
+pub trait GraphStage: Clone {
+    fn build_shape(&mut self);
+    fn build_demand(&mut self, tx: BroadcastSender<Demand>, rx: BroadcastReceiver<Demand>);
+    fn create_logic(&mut self, attributes: Attributes) -> GraphStageLogic;
 
-    fn get_shape(&'a self) -> ShapeType;
+    fn get_shape(&self) -> ShapeType;
 }
 
 ///////////////
